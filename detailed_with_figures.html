@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Dynamics by Reservoir Computing - 詳細解説（図入り）</title>
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.9;
+            color: #333;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 30px rgba(0,0,0,0.1);
+        }
+        header {
+            background: linear-gradient(135deg, #0d1b2a 0%, #1b263b 50%, #415a77 100%);
+            color: white;
+            padding: 60px 50px;
+        }
+        header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+            line-height: 1.4;
+            font-weight: 300;
+        }
+        header .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 25px;
+        }
+        .meta-box {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        .meta-box p {
+            margin: 5px 0;
+            font-size: 0.9rem;
+        }
+        nav.toc {
+            background: #1b263b;
+            padding: 30px 50px;
+            color: white;
+        }
+        nav.toc h2 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #778da9;
+        }
+        nav.toc ul {
+            list-style: none;
+            column-count: 2;
+            column-gap: 40px;
+        }
+        nav.toc li {
+            margin: 8px 0;
+        }
+        nav.toc a {
+            color: #e0e1dd;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+        nav.toc a:hover {
+            color: #778da9;
+        }
+        main {
+            padding: 50px;
+        }
+        section {
+            margin-bottom: 60px;
+            padding-bottom: 40px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        section:last-child {
+            border-bottom: none;
+        }
+        h2 {
+            color: #1b263b;
+            font-size: 1.6rem;
+            margin-bottom: 25px;
+            padding: 15px 20px;
+            background: linear-gradient(90deg, #415a77 0%, transparent 100%);
+            color: white;
+            border-radius: 5px;
+        }
+        h3 {
+            color: #1b263b;
+            font-size: 1.25rem;
+            margin: 35px 0 15px;
+            padding-left: 15px;
+            border-left: 4px solid #415a77;
+        }
+        h4 {
+            color: #415a77;
+            font-size: 1.1rem;
+            margin: 25px 0 10px;
+        }
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        .abstract {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 5px solid #415a77;
+        }
+        .abstract h3 {
+            margin-top: 0;
+            border: none;
+            padding: 0;
+            color: #1b263b;
+        }
+        .definition-box {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border: 1px solid #2196f3;
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 10px;
+        }
+        .definition-box h4 {
+            color: #1565c0;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .theorem-box {
+            background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+            border: 2px solid #ffc107;
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 10px;
+        }
+        .theorem-box h4 {
+            color: #ff8f00;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.15rem;
+        }
+        .remark-box {
+            background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+            border: 1px solid #9c27b0;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        .remark-box h4 {
+            color: #7b1fa2;
+            margin-top: 0;
+        }
+        .algorithm-box {
+            background: #263238;
+            color: #eceff1;
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+        }
+        .algorithm-box h4 {
+            color: #80cbc4;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+        .algorithm-box .step {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .algorithm-box .step-title {
+            color: #ffcc80;
+            font-weight: bold;
+        }
+        .equation-block {
+            background: #fafafa;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            text-align: center;
+            overflow-x: auto;
+            border: 1px solid #e0e0e0;
+        }
+        .figure-box {
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        .figure-box img {
+            max-width: 60%;
+            height: auto;
+            border: 1px solid #eee;
+            border-radius: 5px;
+        }
+        .figure-box .fig-caption {
+            margin-top: 15px;
+            font-size: 0.95rem;
+            color: #555;
+            text-align: left;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+        .figure-box .fig-caption strong {
+            color: #1b263b;
+        }
+        .figure-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .figure-row .figure-box {
+            margin: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        table th, table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        table th {
+            background: #415a77;
+            color: white;
+        }
+        table tr:nth-child(even) {
+            background: #f5f5f5;
+        }
+        ul, ol {
+            margin: 15px 0 15px 30px;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        .highlight {
+            background: linear-gradient(transparent 60%, #ffeb3b 60%);
+            padding: 0 3px;
+        }
+        .note-box {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px 20px;
+            margin: 20px 0;
+        }
+        .warning-box {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+            padding: 15px 20px;
+            margin: 20px 0;
+        }
+        .result-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+        .result-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .result-card h5 {
+            color: #415a77;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+        footer {
+            background: #1b263b;
+            color: white;
+            padding: 40px 50px;
+        }
+        footer h3 {
+            border: none;
+            padding: 0;
+            color: #778da9;
+            margin-bottom: 15px;
+        }
+        footer ul {
+            list-style: none;
+            margin: 0;
+        }
+        footer li {
+            margin: 10px 0;
+            font-size: 0.9rem;
+        }
+        footer a {
+            color: #778da9;
+            text-decoration: none;
+        }
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #415a77;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            font-size: 1.5rem;
+        }
+        .page-image {
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .page-image:hover {
+            transform: scale(1.02);
+        }
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .lightbox img {
+            max-width: 95%;
+            max-height: 95%;
+        }
+        .lightbox.active {
+            display: flex;
+        }
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+        }
+        @media (max-width: 768px) {
+            header, main, footer, nav.toc {
+                padding: 30px 20px;
+            }
+            nav.toc ul {
+                column-count: 1;
+            }
+            h2 {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header id="top">
+            <h1>Learning Dynamics by Reservoir Computing</h1>
+            <p class="subtitle">リザバーコンピューティングによる動力学の学習 ― 詳細解説（図入り）</p>
+            <p style="font-style: italic; opacity: 0.8;">In Memory of Prof. Pavol Brunovsky</p>
+            <div class="meta-box">
+                <p><strong>著者:</strong> Masato Hara (原 正人), Hiroshi Kokubu (国府 寛司)</p>
+                <p><strong>所属:</strong> Department of Mathematics, Kyoto University, Kyoto 606-8502, Japan</p>
+                <p><strong>掲載誌:</strong> Journal of Dynamics and Differential Equations (2024) 36:S515-S540</p>
+                <p><strong>DOI:</strong> 10.1007/s10884-022-10159-w</p>
+            </div>
+        </header>
+
+        <nav class="toc">
+            <h2>目次</h2>
+            <ul>
+                <li><a href="#sec1">1. はじめに (Introduction)</a></li>
+                <li><a href="#sec2">2. リザバーコンピューティングとは</a></li>
+                <li><a href="#sec2-1">　2.1 一般的な枠組み</a></li>
+                <li><a href="#sec2-2">　2.2 動力学学習のための設定</a></li>
+                <li><a href="#sec2-3">　2.3 成功・失敗の定義</a></li>
+                <li><a href="#sec3">3. ロジスティック写像の数値実験</a></li>
+                <li><a href="#sec3-1">　3.1 学習の成功条件</a></li>
+                <li><a href="#sec3-2">　3.2 共役性の数値的検証</a></li>
+                <li><a href="#sec3-3">　3.3 3ノードリザバーの結果</a></li>
+                <li><a href="#sec3-4">　3.4 位相空間構造の解析</a></li>
+                <li><a href="#sec3-5">　3.5 分岐構造</a></li>
+                <li><a href="#sec4">4. 成功学習のメカニズム</a></li>
+                <li><a href="#sec5">5. 結論と議論</a></li>
+                <li><a href="#references">参考文献</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <!-- Abstract -->
+            <div class="abstract">
+                <h3>Abstract（要旨）</h3>
+                <p>本論文では、機械学習手法の一つであるリザバーコンピューティングを、動力学学習の観点から研究する。カオス力学系の典型例であるロジスティック写像の動力学を、30ノードおよび3ノードのリザバーを用いて学習する数値実験を行った。学習が成功すると、リザバーの位相空間に、学習対象のロジスティック写像と<strong>滑らかに共役</strong>なアトラクタが観測される。この数値的観察に基づき、縮退リザバーシステムを導入し、この観察を数学的に確認する。また、リザバーコンピューティングは訓練データに含まれない動力学情報を学習できることを示す。</p>
+                <p style="margin-top: 15px;"><strong>キーワード:</strong> Reservoir computing, Logistic map, Attractor, Conjugacy, Degenerate reservoir, Bifurcation</p>
+            </div>
+
+            <!-- Section 1 -->
+            <section id="sec1">
+                <h2>1. はじめに (Introduction)</h2>
+
+                <p>本論文では、リザバーコンピューティングという機械学習手法を、<strong>力学系</strong>の観点から研究する。リザバーコンピューティングは、入出力を持つ再帰型ニューラルネットワーク（RNN: Recurrent Neural Network）に基づいている。</p>
+
+                <h3>リザバーコンピューティングの背景</h3>
+                <p>RNNを用いた機械学習は一般に、RNN内のノード間の相互作用の重みと入出力層のノード間の重みを最適化しようとするため、大量の計算が必要となる。リザバーコンピューティングは、ノード間の相互作用の重みのほとんどを固定し、<strong>RNNから出力層への重みのみを調整</strong>することで、学習の計算コストを大幅に削減できる。</p>
+
+                <h3>本研究の目的</h3>
+                <p>本論文の目的は、リザバーコンピューティングシステムがどのように動力学を学習するかを研究することである。主要な特徴は、リザバーコンピューティングシステム自体を力学系として捉え、アトラクタ、不変多様体、固定点、それらの安定・不安定多様体、分岐などを含む位相空間の力学構造を調査する力学系的視点を取ることである。</p>
+
+                <h3>主要な数値結果</h3>
+                <div class="result-summary">
+                    <div class="result-card">
+                        <h5>結果 1: 学習段階のアトラクタ</h5>
+                        <p>半直積系はその位相空間に、ロジスティック写像のカオス力学と滑らかに共役なアトラクタを持つ。</p>
+                    </div>
+                    <div class="result-card">
+                        <h5>結果 2: 予測段階のアトラクタ</h5>
+                        <p>学習成功後、予測段階の自律リザバーシステムもターゲットのカオス力学と滑らかに共役と見られるアトラクタを保持する。</p>
+                    </div>
+                    <div class="result-card">
+                        <h5>結果 3: 低次元リザバー</h5>
+                        <p>わずか3ノードからなるリザバーシステムでも、ロジスティック写像のカオス力学を十分に学習できる。</p>
+                    </div>
+                    <div class="result-card">
+                        <h5>結果 4: 位相空間構造</h5>
+                        <p>自律リザバーの位相空間はアトラクタの外部に固定点を持ち、ロジスティック写像の位相空間構造と一致する。</p>
+                    </div>
+                    <div class="result-card">
+                        <h5>結果 5: 分岐の再現</h5>
+                        <p>ハイパーパラメータを変化させた自律リザバーシステムの分岐図は、ロジスティック写像の本質的な分岐特徴を再現する。</p>
+                    </div>
+                </div>
+
+                <div class="remark-box">
+                    <h4>注目すべき点</h4>
+                    <p>結果4と5は、動力学のリザバーコンピューティングが、学習対象の動力学の<strong>訓練データを超えた情報を予測できる</strong>ことを示している。これはリザバーコンピューティングの顕著でユニークな特徴である。</p>
+                </div>
+            </section>
+
+            <!-- Section 2 -->
+            <section id="sec2">
+                <h2>2. リザバーコンピューティングとは：本研究の設定</h2>
+
+                <section id="sec2-1">
+                    <h3>2.1 リザバーコンピューティングの一般的枠組み</h3>
+
+                    <p>$N$個のノードからなるRNNをリザバーとし、$K$個の入力ノードと$L$個の出力ノードを持つリザバーコンピューティングの一般的な定式化を与える。</p>
+
+                    <div class="definition-box">
+                        <h4>変数と重み行列の定義</h4>
+                        <ul>
+                            <li><strong>リザバー内部変数:</strong> $r \in \mathbb{R}^N$</li>
+                            <li><strong>入力変数:</strong> $u \in \mathbb{R}^K$</li>
+                            <li><strong>出力変数:</strong> $\eta \in \mathbb{R}^L$</li>
+                            <li><strong>リザバー内部の接続重み:</strong> $W \in M_{N,N}(\mathbb{R})$</li>
+                            <li><strong>入力層からリザバーへの重み:</strong> $W^{\text{in}} \in M_{N,K}(\mathbb{R})$</li>
+                            <li><strong>リザバーから出力層への重み:</strong> $W^{\text{out}} \in M_{L,K+N+L}(\mathbb{R})$</li>
+                            <li><strong>フィードバック重み:</strong> $W^{\text{fb}} \in M_{N,K}(\mathbb{R})$</li>
+                        </ul>
+                    </div>
+
+                    <h4>時間発展則</h4>
+                    <div class="equation-block">
+                        $$r(t+1) = \Phi(W^{\text{in}}u(t+1) + Wr(t) + W^{\text{fb}}\eta(t))$$
+                    </div>
+
+                    <div class="figure-box">
+                        <img src="figures/figure01_reservoir_schematic.png" alt="Figure 1" class="page-image" onclick="openLightbox(this)">
+                        <p class="fig-caption"><strong>Figure 1:</strong> 一般的なリザバーコンピューティングの模式図。図中の円はRNNのニューロンまたはノードを表す（$K=2$, $N=10$, $L=3$）。重み行列 $W$, $W^{\text{in}}$, $W^{\text{fb}}$ はランダムに選ばれ固定され、$W^{\text{out}}$ のみが学習段階で決定される。</p>
+                    </div>
+
+                    <div class="note-box">
+                        <strong>リザバーコンピューティングの特徴:</strong> 一般的なRNNとは異なり、学習ステップでは<strong>$W^{\text{out}}$のみ</strong>が決定される。$W^{\text{in}}, W, W^{\text{fb}}$は行列のクラスからランダムに選ばれ、最初から固定される。
+                    </div>
+                </section>
+
+                <section id="sec2-2">
+                    <h3>2.2 動力学学習のための本研究のリザバーコンピューティング設定</h3>
+
+                    <h4>学習対象：ロジスティック写像</h4>
+                    <div class="equation-block">
+                        $$x(t+1) = f(x(t)) = ax(t)(1-x(t))$$
+                    </div>
+                    <p>区間 $I = [0, 1]$ 上で定義され、パラメータは $a = 3.7$ を選ぶ（カオス領域）。</p>
+
+                    <h4>リザバーシステムの設定</h4>
+                    <div class="equation-block">
+                        \begin{align}
+                        r(t+1) &= \tanh(Wr(t) + \mathbf{w}^{\text{fb}}x(t)) \\
+                        x(t+1) &= f(x(t)) = ax(t)(1-x(t))
+                        \end{align}
+                    </div>
+
+                    <div class="figure-box">
+                        <img src="figures/figure02_our_setting.png" alt="Figure 2" class="page-image" onclick="openLightbox(this)">
+                        <p class="fig-caption"><strong>Figure 2:</strong> 本論文のリザバーコンピューティング設定の模式図。入力を使用せず、訓練データはフィードバックを通じて使用される。</p>
+                    </div>
+
+                    <h4>重み行列のクラス</h4>
+                    <div class="equation-block">
+                        $$W \in \{X \in M_{N,N}(\mathbb{R}) \mid \rho(X) = R, \, X_{ij} \geq 0\}$$
+                    </div>
+                    <div class="equation-block">
+                        $$\mathbf{w}^{\text{fb}} \in \{x \in \mathbb{R}^N \mid |x_i| = b\}$$
+                    </div>
+
+                    <div class="algorithm-box">
+                        <h4>アルゴリズム：学習と予測</h4>
+                        <div class="step">
+                            <span class="step-title">Step 0: 準備</span><br>
+                            $N, R, b$ を選び、$W$ と $\mathbf{w}^{\text{fb}}$ をランダムに選んで固定。
+                        </div>
+                        <div class="step">
+                            <span class="step-title">Step 1: 学習</span><br>
+                            1-1: リザバーの内部状態を更新<br>
+                            1-2: $\mathbf{w}^{\text{out}}$ を線形回帰で決定
+                        </div>
+                        <div class="step">
+                            <span class="step-title">Step 2: 予測</span><br>
+                            2-1: 1ステップ予測（真のデータを入力）<br>
+                            2-2: リザバー予測（自律発展）
+                        </div>
+                    </div>
+
+                    <div class="definition-box">
+                        <h4>力学系理論の観点</h4>
+                        <p><strong>半直積リザバー（学習段階）:</strong></p>
+                        $$\mathcal{F} := (f, F): \mathbb{R}^1 \times \mathbb{R}^N \to \mathbb{R}^1 \times \mathbb{R}^N$$
+                        <p><strong>自律リザバー（予測段階）:</strong></p>
+                        $$r(t+1) = \tanh(Wr(t) + \mathbf{w}^{\text{fb}}\mathbf{w}^{\text{out}}r(t)) =: \tilde{F}(r(t))$$
+                    </div>
+                </section>
+
+                <section id="sec2-3">
+                    <h3>2.3 ロジスティック力学予測の成功の定義</h3>
+
+                    <p>カオス力学系は初期条件に敏感に依存するため、時系列予測の精度ではなく、<strong>力学の本質的特徴を捉える精度</strong>によって評価する。</p>
+
+                    <div class="figure-box">
+                        <img src="figures/figure03_success_example.png" alt="Figure 3" class="page-image" onclick="openLightbox(this)">
+                        <p class="fig-caption"><strong>Figure 3:</strong> ロジスティック写像のリザバー予測成功例（$N=30$, $R=4.1$, $b=1.1$）。(a) $(\mathbf{w}^{\text{out}}r(t), \mathbf{w}^{\text{out}}r(t+1))$プロット。(b) 1ステップ予測。(c) リザバー予測。</p>
+                    </div>
+
+                    <div class="figure-box">
+                        <img src="figures/figure04_failure_hole.png" alt="Figure 4" class="page-image" onclick="openLightbox(this)">
+                        <p class="fig-caption"><strong>Figure 4:</strong> 失敗例。(a)で0.7付近に隙間があるが、(b)の1ステップ予測は成功している。</p>
+                    </div>
+
+                    <div class="figure-box">
+                        <img src="figures/figure05_failure_period7.png" alt="Figure 5" class="page-image" onclick="openLightbox(this)">
+                        <p class="fig-caption"><strong>Figure 5:</strong> 別の失敗例。リザバー予測が周期7の周期軌道を示す。$a = 3.702$（$a = 3.7$に近い）のロジスティック写像は周期7の安定周期点を持つ。</p>
+                    </div>
+
+                    <h4>成功と失敗の定義（2つの基準）</h4>
+                    <ol>
+                        <li>$|\mathbf{w}^{\text{out}}r(t+1) - f(\mathbf{w}^{\text{out}}r(t))|$ の平均誤差が $\varepsilon = 10^{-1.6}$ 未満</li>
+                        <li>固定点 $1 - 1/a \approx 0.73$ 周辺のデータ点に「穴」がない</li>
+                    </ol>
+                </section>
+            </section>
+
+            <!-- Section 3 -->
+            <section id="sec3">
+                <h2>3. ロジスティック写像の数値実験</h2>
+
+                <section id="sec3-1">
+                    <h3>3.1 ロジスティック力学の学習成功</h3>
+
+                    <p>動力学学習のためのリザバーの適切な設定（ハイパーパラメータ $R$ と $b$）を探索する。</p>
+
+                    <div class="figure-box">
+                        <img src="figures/figure06_heatmap_n30.png" alt="Figure 6" class="page-image" onclick="openLightbox(this)">
+                        <p class="fig-caption"><strong>Figure 6:</strong> 学習成功率のヒートマップ（$N=30$, $R \in [0.5, 7.5]$, $b \in [0.1, 2.5]$）。色は成功数を示す。$R \approx 5.5$, $b \approx 0.7$ 付近でほぼ100%の成功率。これは通常の $\rho(W) < 1$ という選択とは対照的。</p>
+                    </div>
+                </section>
+
+                <section id="sec3-2">
+                    <h3>3.2 力学の共役性の数値的検証</h3>
+
+                    <p>成功と分類された結果について、主成分分析（PCA）を適用してリザバー位相空間構造を研究した。</p>
+
+                    <div class="figure-box">
+                        <img src="figures/figure07_pca_analysis.png" alt="Figure 7" class="page-image" onclick="openLightbox(this)">
+                        <p class="fig-caption"><strong>Figure 7:</strong> 力学予測成功例（$N=30$, $R=5.0$, $b=1.3$）。(a) $(\mathbf{w}^{\text{out}}r(t), \mathbf{w}^{\text{out}}r(t+1))$プロット。(b) 3D PCA。(c) 2D PCA。第1主成分の寄与率約94.8%。</p>
+                    </div>
+
+                    <div class="figure-box">
+                        <img src="figures/figure08_conjugacy_plot.png" alt="Figure 8" class="page-image" onclick="openLightbox(this)">
+                        <p class="fig-caption"><strong>Figure 8:</strong> $(\pi_1(r(t)), \mathbf{w}^{\text{out}}r(t-1))$プロット。滑らかな単調関数が観察され、予測段階のリザバーのアトラクタとロジスティック力学の間の<strong>滑らかな共役</strong>を示す。</p>
+                    </div>
+
+                    <div class="figure-box">
+                        <img src="figures/figure09_lyapunov.png" alt="Figure 9" class="page-image" onclick="openLightbox(this)">
+                        <p class="fig-caption"><strong>Figure 9:</strong> 数値計算されたリアプノフスペクトル。30個のリアプノフ指数のうち1つだけが正であり、それはロジスティック写像のリアプノフ指数に近い。</p>
+                    </div>
+
+                    <div class="figure-box">
+                        <img src="figures/figure10_heatmap_n3.png" alt="Figure 10" class="page-image" onclick="openLightbox(this)">
+                        <p class="fig-caption"><strong>Figure 10:</strong> 3ノードリザバーの成功率ヒートマップ（$N=3$）。</p>
+                    </div>
+                </section>
+
+                <section id="sec3-3">
+                    <h3>3.3 3ノードリザバーの数値結果</h3>
+
+                    <p><strong>わずか3ノードのリザバーシステムでもロジスティック写像のカオス力学をかなりうまく学習できる</strong>ことを発見した。</p>
+
+                    <div class="figure-box">
+                        <img src="figures/figure11_3node_success.png" alt="Figure 11" class="page-image" onclick="openLightbox(this)">
+                        <p class="fig-caption"><strong>Figure 11:</strong> 3ノードリザバーによる成功予測例（$R=4.5$, $b=0.9$）。(a) $(\mathbf{w}^{\text{out}}r(t), \mathbf{w}^{\text{out}}r(t+1))$プロット。(b) 3次元リザバー空間のアトラクタ。</p>
+                    </div>
+
+                    <div class="figure-box">
+                        <img src="figures/figure12_fixed_points.png" alt="Figure 12" class="page-image" onclick="openLightbox(this)">
+                        <p class="fig-caption"><strong>Figure 12:</strong> 3次元リザバー空間で発見された固定点 $P_j^{\pm}$ ($j=1,2,3,4$) と原点$O$。(b)は角点$(-1,-1,-1)$付近の拡大図。</p>
+                    </div>
+                </section>
+
+                <section id="sec3-4">
+                    <h3>3.4 3ノードリザバーの位相空間構造</h3>
+
+                    <p>リザバー空間の3次元性を活かし、固定点とその性質を計算することで位相空間の力学構造を直接探索する。</p>
+
+                    <h4>発見された固定点</h4>
+                    <table>
+                        <tr>
+                            <th>固定点</th>
+                            <th>座標</th>
+                            <th>安定性</th>
+                        </tr>
+                        <tr>
+                            <td>$P_1^{\pm}$</td>
+                            <td>$\pm(0.99279, 0.12238, 0.03424)$</td>
+                            <td>不安定</td>
+                        </tr>
+                        <tr>
+                            <td>$P_2^{\pm}$</td>
+                            <td>$\pm(0.99518, 0.99991, 0.99999)$</td>
+                            <td><strong>安定</strong></td>
+                        </tr>
+                        <tr>
+                            <td>$P_3^{\pm}$</td>
+                            <td>$\pm(0.99878, 0.99966, 0.99998)$</td>
+                            <td>不安定</td>
+                        </tr>
+                        <tr>
+                            <td>$P_4^{\pm}$</td>
+                            <td>$\pm(0.99980, 0.99794, 0.99991)$</td>
+                            <td>不安定</td>
+                        </tr>
+                        <tr>
+                            <td>$O$</td>
+                            <td>$(0, 0, 0)$</td>
+                            <td>不安定</td>
+                        </tr>
+                    </table>
+
+                    <div class="figure-box">
+                        <img src="figures/figure13_fixed_points_detail.png" alt="Figure 13" class="page-image" onclick="openLightbox(this)">
+                        <p class="fig-caption"><strong>Figure 13:</strong> $P_2^-$, $P_3^-$, $P_4^-$ 付近の詳細。円は $P_2^-$、三角形は $P_3^-$、十字は $P_4^-$。曲線はアトラクタ $\Gamma^-$。$P_4^-$ がアトラクタの中央に位置する。$P_3^-$ はロジスティック写像の原点に対応、$P_4^-$ は $1-1/a \approx 0.73$ に対応。</p>
+                    </div>
+
+                    <div class="figure-box">
+                        <img src="figures/figure14_unstable_manifolds.png" alt="Figure 14" class="page-image" onclick="openLightbox(this)">
+                        <p class="fig-caption"><strong>Figure 14:</strong> 各固定点の不安定多様体。(a)〜(d)はそれぞれ $P_1^-$, $P_2^-$, $P_3^-$, $P_4^-$ の不安定多様体。$P_3^-$ の不安定多様体は一方がアトラクタ $\Gamma^-$ に、他方が $P_2^-$ に接続。これはロジスティック写像における原点の不安定多様体の構造と一致する。</p>
+                    </div>
+                </section>
+
+                <section id="sec3-5">
+                    <h3>3.5 3ノードリザバーの分岐構造</h3>
+
+                    <p>学習後のリザバーシステムのハイパーパラメータを変化させたときの分岐を研究する。</p>
+
+                    <h4>摂動族</h4>
+                    <div class="equation-block">
+                        $$r(t+1) = \tanh((1+\mu)Wr(t) + \mathbf{w}^{\text{fb}}\mathbf{w}^{\text{out}}r(t))$$
+                        $$r(t+1) = \tanh(Wr(t) + (1+\nu)\mathbf{w}^{\text{fb}}\mathbf{w}^{\text{out}}r(t))$$
+                    </div>
+
+                    <div class="figure-box">
+                        <img src="figures/figure15_bifurcation_mu.png" alt="Figure 15" class="page-image" onclick="openLightbox(this)">
+                        <p class="fig-caption"><strong>Figure 15:</strong> $\mu$（スペクトル半径）によるパラメータ化の分岐図。</p>
+                    </div>
+
+                    <div class="figure-box">
+                        <img src="figures/figure16_bifurcation_nu.png" alt="Figure 16" class="page-image" onclick="openLightbox(this)">
+                        <p class="fig-caption"><strong>Figure 16:</strong> $\nu$（フィードバック重み）によるパラメータ化の分岐図。</p>
+                    </div>
+
+                    <div class="figure-box">
+                        <img src="figures/figure17_logistic_bifurcation.png" alt="Figure 17" class="page-image" onclick="openLightbox(this)">
+                        <p class="fig-caption"><strong>Figure 17:</strong> パラメータ $a$ によるロジスティック写像族の分岐図。Figure 15と16がこの分岐図と<strong>著しく類似</strong>していることに注目。リザバーは $a=3.7$ のみで訓練されたにもかかわらず、周期窓、バンド分裂などの分岐特徴を再現している。</p>
+                    </div>
+                </section>
+            </section>
+
+            <!-- Section 4 -->
+            <section id="sec4">
+                <h2>4. リザバーの学習成功のメカニズム</h2>
+
+                <p>セクション3の数値結果に基づき、リザバーコンピューティングの学習成功を説明する数学的メカニズムを提示する。</p>
+
+                <h3>縮退リザバーの導入</h3>
+                <p>リザバー変数 $r(t)$ が $\mathbf{v} = (-1, -1, -1)$ に非常に近い値を取ることが観察されたため、以下の「特異極限」を考える：</p>
+                <div class="equation-block">
+                    $$r(t+1) = \tanh(W\mathbf{v} + \mathbf{w}^{\text{fb}}x(t)), \quad x(t+1) = ax(t)(1-x(t))$$
+                </div>
+
+                <div class="figure-box">
+                    <img src="figures/figure18_degenerate_prediction.png" alt="Figure 18" class="page-image" onclick="openLightbox(this)">
+                    <p class="fig-caption"><strong>Figure 18:</strong> 縮退リザバーによる時系列予測。(a) 1ステップ予測、(b) 力学の予測。</p>
+                </div>
+
+                <div class="figure-box">
+                    <img src="figures/figure19_degenerate_logistic.png" alt="Figure 19" class="page-image" onclick="openLightbox(this)">
+                    <p class="fig-caption"><strong>Figure 19:</strong> 縮退リザバーによるロジスティック写像の予測。</p>
+                </div>
+
+                <div class="theorem-box">
+                    <h4>定理 4</h4>
+                    <p>$F_0: M \to Y$ が単射であるとき、写像 $\tilde{F}: \Gamma \to Y$ は</p>
+                    $$\tilde{F}(r) = F_0(f(\gamma(r)))$$
+                    <p>で定義され、$\Gamma$ は $\tilde{F}$ の下で不変であり、$\Gamma$ 上の力学系 $\tilde{F}$ は $\gamma: \Gamma \to M$ により $M$ 上の $f$ と<strong>滑らかに共役</strong>である。</p>
+                </div>
+
+                <div class="figure-box">
+                    <img src="figures/figure20_attractor_comparison.png" alt="Figure 20" class="page-image" onclick="openLightbox(this)">
+                    <p class="fig-caption"><strong>Figure 20:</strong> 学習段階の非縮退（赤）と縮退（黒）リザバーのアトラクタ比較。$(r_1, x)$平面への射影。$N=3$。</p>
+                </div>
+
+                <div class="figure-box">
+                    <img src="figures/figure21_reservoir_attractor.png" alt="Figure 21" class="page-image" onclick="openLightbox(this)">
+                    <p class="fig-caption"><strong>Figure 21:</strong> リザバー空間における学習段階のアトラクタ（非縮退と縮退）。</p>
+                </div>
+
+                <div class="figure-box">
+                    <img src="figures/figure22_conjugacy_comparison.png" alt="Figure 22" class="page-image" onclick="openLightbox(this)">
+                    <p class="fig-caption"><strong>Figure 22:</strong> 共役写像の比較。実線は理論的共役 $F^{-1}$（定理4の$\gamma$）、点は数値計算による共役。両者は非常に近い。</p>
+                </div>
+            </section>
+
+            <!-- Section 5 -->
+            <section id="sec5">
+                <h2>5. 結論と議論</h2>
+
+                <h3>5.1 機械学習の観点からのリザバーコンピューティングの顕著な特徴</h3>
+
+                <h4>訓練データを超えた情報の学習</h4>
+                <p>リザバーコンピューティングの学習は、区間 $(0, 1)$ 内のカオス時系列のみを使用する。しかし、学習成功後のリザバー力学は、訓練データでカバーされる位相空間領域をはるかに超えたターゲット力学の情報（固定点、不安定多様体など）を再現する。</p>
+
+                <h4>分岐の再現</h4>
+                <p>リザバーは $a = 3.7$ のみで訓練されるが、一度学習に成功すると、訓練データに含まれない周期窓、バンド分裂などの分岐特徴を示す。</p>
+
+                <div class="figure-box">
+                    <img src="figures/figure23_partial_bifurcation.png" alt="Figure 23" class="page-image" onclick="openLightbox(this)">
+                    <p class="fig-caption"><strong>Figure 23:</strong> パラメータ範囲 $3.65 \leq a \leq 3.75$ におけるロジスティック写像族の分岐図の一部。</p>
+                </div>
+
+                <h3>5.2 結論</h3>
+                <div class="note-box" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-left-color: #1976d2;">
+                    <p><strong>リザバーコンピューティングは、そのリザバー位相空間にターゲット力学の本質的に正確なコピーを再現でき、その結果、訓練データを超えた情報を含む動力学情報を取得できるという点で、機械学習手法の中でユニークである。</strong></p>
+                </div>
+
+                <h4>今後の課題</h4>
+                <ol>
+                    <li>縮退リザバー以外の一般的なリザバーシステムへの理論の拡張</li>
+                    <li>ローレンツ系、レスラー系など他の力学系への適用研究</li>
+                </ol>
+            </section>
+
+            <!-- References -->
+            <section id="references">
+                <h2>参考文献</h2>
+                <ol>
+                    <li>Jaeger, H.: The echo state approach to analysing and training recurrent neural networks (2001)</li>
+                    <li>Jaeger, H., Haas, H.: Harnessing nonlinearity: predicting chaotic systems. Science 304 (2004)</li>
+                    <li>Kobayashi, M.U. et al.: Dynamical system analysis of a data-driven model constructed by reservoir computing. Phys. Rev. E 104 (2021)</li>
+                    <li>Maass, W. et al.: Real-time computing without stable states. Neural Comput. 14 (2002)</li>
+                    <li>Pathak, J. et al.: Model-free prediction of large spatiotemporally chaotic systems. Phys. Rev. Lett. 120 (2018)</li>
+                    <li>Pathak, J. et al.: Using machine learning to replicate chaotic attractors. Chaos 27 (2017)</li>
+                    <li>Lu, Z. et al.: Attractor reconstruction by machine learning. Chaos 28 (2018)</li>
+                </ol>
+            </section>
+        </main>
+
+        <footer>
+            <h3>論文情報</h3>
+            <ul>
+                <li><strong>タイトル:</strong> Learning Dynamics by Reservoir Computing</li>
+                <li><strong>著者:</strong> Masato Hara, Hiroshi Kokubu (Kyoto University)</li>
+                <li><strong>掲載誌:</strong> Journal of Dynamics and Differential Equations (2024) 36:S515-S540</li>
+                <li><strong>DOI:</strong> <a href="https://doi.org/10.1007/s10884-022-10159-w">10.1007/s10884-022-10159-w</a></li>
+                <li><strong>ライセンス:</strong> Open Access - Creative Commons Attribution 4.0 International License</li>
+            </ul>
+        </footer>
+    </div>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <span class="lightbox-close">&times;</span>
+        <img src="" alt="Enlarged image" id="lightbox-img">
+    </div>
+
+    <a href="#top" class="back-to-top">↑</a>
+
+    <script>
+        function openLightbox(img) {
+            document.getElementById('lightbox-img').src = img.src;
+            document.getElementById('lightbox').classList.add('active');
+        }
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+        }
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeLightbox();
+        });
+    </script>
+</body>
+</html>
