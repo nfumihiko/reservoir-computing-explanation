@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>論文解説リスト</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        header h1 {
+            font-size: 2rem;
+            color: #1b263b;
+            margin-bottom: 10px;
+        }
+        header p {
+            color: #666;
+            font-size: 1rem;
+        }
+        .paper-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .paper-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .paper-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+        .paper-card h2 {
+            font-size: 1.2rem;
+            color: #1b263b;
+            margin-bottom: 10px;
+        }
+        .paper-card h2 a {
+            color: #1b263b;
+            text-decoration: none;
+        }
+        .paper-card h2 a:hover {
+            color: #415a77;
+        }
+        .paper-meta {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 12px;
+        }
+        .paper-meta span {
+            margin-right: 15px;
+        }
+        .paper-description {
+            font-size: 0.95rem;
+            color: #555;
+            line-height: 1.7;
+        }
+        .tag {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            margin-right: 8px;
+            margin-top: 10px;
+        }
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            color: #999;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>論文解説リスト</h1>
+            <p>研究論文の詳細な日本語解説</p>
+        </header>
+
+        <div class="paper-list">
+            <article class="paper-card">
+                <h2><a href="detailed_with_figures.html">Learning Dynamics by Reservoir Computing</a></h2>
+                <div class="paper-meta">
+                    <span>Masato Hara, Hiroshi Kokubu</span>
+                    <span>Journal of Dynamics and Differential Equations (2024)</span>
+                </div>
+                <p class="paper-description">
+                    リザバーコンピューティングを用いた動力学の学習に関する研究。ロジスティック写像のカオス力学を学習し、リザバーの位相空間にターゲット力学と滑らかに共役なアトラクタが形成されることを数値的・理論的に示す。
+                </p>
+                <div>
+                    <span class="tag">Reservoir Computing</span>
+                    <span class="tag">Dynamical Systems</span>
+                    <span class="tag">Chaos</span>
+                </div>
+            </article>
+
+            <!-- 新しい論文を追加する場合はここにコピー -->
+            <!--
+            <article class="paper-card">
+                <h2><a href="別のページ.html">論文タイトル</a></h2>
+                <div class="paper-meta">
+                    <span>著者名</span>
+                    <span>掲載誌 (年)</span>
+                </div>
+                <p class="paper-description">
+                    論文の概要説明
+                </p>
+                <div>
+                    <span class="tag">タグ1</span>
+                    <span class="tag">タグ2</span>
+                </div>
+            </article>
+            -->
+        </div>
+
+        <footer>
+            <p>Paper Explanations</p>
+        </footer>
+    </div>
+</body>
+</html>
